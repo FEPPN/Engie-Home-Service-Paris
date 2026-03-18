@@ -38,22 +38,15 @@
 
     <div id="papernest-app-wrapper" class="w-full flex flex-col items-center justify-center py-2 px-3">
         
-        <!-- Top Icon -->
-        <div class="mb-3 bg-[#F6F5FF] p-2.5 rounded-2xl inline-flex items-center justify-center">
-            <svg class="w-5 h-5 text-[#5A52FF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14H4z"></path>
-            </svg>
-        </div>
-
         <!-- Main Title -->
         <h1 class="text-lg md:text-xl font-bold mb-4 md:mb-6 text-center tracking-tight">
             Trouvez votre offre EDF
         </h1>
 
-        <!-- Main Card : Format compact mobile, max-w-[500px] pour l'élégance desktop -->
-        <div class="bg-white rounded-[24px] w-full max-w-[500px] border border-[#E7E5E4] p-5 md:p-8 shadow-sm relative">
+        <!-- Main Card : Format compact mobile, étendu sur desktop -->
+        <div class="bg-white rounded-[24px] w-full max-w-[500px] md:max-w-[800px] border border-[#E7E5E4] p-5 md:p-8 shadow-sm relative">
             
-            <p class="text-[#57534D] text-[15px] mb-5 md:mb-6 text-center leading-relaxed">
+            <p class="text-[#57534D] text-[15px] mb-5 md:mb-6 text-center md:text-left leading-relaxed">
                 Consultez les détails de chaque offre et trouvez celle qui correspond à votre logement ou entreprise.
             </p>
 
@@ -61,45 +54,48 @@
                 Sélectionnez une offre
             </label>
 
-            <!-- Custom Select Box -->
-            <div class="relative w-full mb-4" id="dropdown-container">
-                <div id="dropdown-trigger" class="w-full min-h-[48px] bg-white border border-[#E7E5E4] hover:border-[#D6D3D1] text-[15px] py-3 px-4 rounded-xl transition-all font-medium cursor-pointer flex items-center justify-between">
-                    <div class="flex items-center gap-3 truncate pr-4" id="selected-offer-display">
+            <!-- Mise en page : côte à côte sur ordinateur, empilé sur mobile -->
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <!-- Custom Select Box -->
+                <div class="relative w-full md:flex-1" id="dropdown-container">
+                    <div id="dropdown-trigger" class="w-full min-h-[48px] bg-white border border-[#E7E5E4] hover:border-[#D6D3D1] text-[15px] py-3 px-4 rounded-xl transition-all font-medium cursor-pointer flex items-center justify-between">
+                        <div class="flex items-center gap-3 truncate pr-4" id="selected-offer-display">
+                            <!-- Rempli par JS -->
+                        </div>
+                        <svg id="dropdown-chevron" class="w-4 h-4 text-[#79716B] flex-shrink-0 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </div>
+
+                    <!-- Dropdown Options : S'ouvre par dessus les options grâce à absolute et z-50 -->
+                    <div id="dropdown-menu" class="hidden absolute z-50 w-full mt-2 bg-white border border-[#E7E5E4] rounded-xl shadow-lg max-h-[220px] overflow-y-auto custom-scrollbar py-2 animate-dropdown">
                         <!-- Rempli par JS -->
                     </div>
-                    <svg id="dropdown-chevron" class="w-4 h-4 text-[#79716B] flex-shrink-0 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m6 9 6 6 6-6"></path>
-                    </svg>
                 </div>
 
-                <!-- Dropdown Options : S'ouvre par dessus les options grâce à absolute et z-50 -->
-                <div id="dropdown-menu" class="hidden absolute z-50 w-full mt-2 bg-white border border-[#E7E5E4] rounded-xl shadow-lg max-h-[220px] overflow-y-auto custom-scrollbar py-2 animate-dropdown">
-                    <!-- Rempli par JS -->
-                </div>
+                <!-- CTA Button (Intégré dans la ligne sur desktop) -->
+                <button id="cta-button" class="w-full md:w-auto min-w-[200px] min-h-[48px] bg-[#5A52FF] hover:bg-[#443EC1] text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200">
+                    Découvrir l'offre
+                </button>
             </div>
 
-            <!-- Features / Reassurance (Empilés verticalement comme sur votre capture) -->
-            <div class="flex flex-col gap-3 mb-6">
+            <!-- Features / Reassurance (Empilés sur mobile, côte à côte sur desktop) -->
+            <div class="flex flex-col md:flex-row gap-3">
                 <!-- Badge 1 -->
-                <div class="flex items-center text-[15px] text-[#3F3F46] bg-[#F4FDF8] p-3.5 rounded-xl border border-[#A4F4CF]/40">
+                <div class="flex items-center text-[15px] text-[#3F3F46] bg-[#F4FDF8] p-3.5 rounded-xl border border-[#A4F4CF]/40 md:flex-1">
                     <svg class="w-[18px] h-[18px] text-[#009966] mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2-1 4-2 7-2 2.5 0 4.5 1 6.5 2a1 1 0 0 1 1 1v7z"></path><path d="m9 12 2 2 4-4"></path>
                     </svg>
                     <span class="font-medium">Service 100% gratuit</span>
                 </div>
                 <!-- Badge 2 -->
-                <div class="flex items-center text-[15px] text-[#3F3F46] bg-[#F4FDF8] p-3.5 rounded-xl border border-[#A4F4CF]/40">
+                <div class="flex items-center text-[15px] text-[#3F3F46] bg-[#F4FDF8] p-3.5 rounded-xl border border-[#A4F4CF]/40 md:flex-1">
                     <svg class="w-[18px] h-[18px] text-[#009966] mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
                     </svg>
                     <span class="font-medium">Offres vertes dispos</span>
                 </div>
             </div>
-
-            <!-- CTA Button -->
-            <button id="cta-button" class="w-full min-h-[50px] bg-[#5A52FF] hover:bg-[#443EC1] text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200">
-                Découvrir l'offre
-            </button>
             
         </div>
     </div>
