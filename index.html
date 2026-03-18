@@ -41,10 +41,10 @@
         }
     </style>
 </head>
-<body class="bg-transparent m-0 p-0">
+<body class="bg-transparent m-0 p-0 overflow-hidden">
     
     <!-- Marges réduites au strict minimum pour supprimer l'espace vide -->
-    <div class="w-full flex flex-col items-center p-2">
+    <div id="engie-app-wrapper" class="w-full flex flex-col items-center p-2">
         <!-- Titre centré -->
         <div class="w-full max-w-6xl mb-4 md:mb-6 text-center">
             <h1 class="text-2xl md:text-3xl font-extrabold text-[#1C1917]">
@@ -202,6 +202,17 @@
             window.addEventListener('resize', () => {
                 if(map) map.invalidateSize();
             });
+
+            // NOUVEAU : Calcul exact de la hauteur et envoi au site parent
+            const wrapper = document.getElementById('engie-app-wrapper');
+            if (wrapper) {
+                const resizeObserver = new ResizeObserver(() => {
+                    // On ajoute 20px de marge de sécurité pour éviter toute coupure
+                    const newHeight = wrapper.offsetHeight + 20;
+                    window.parent.postMessage({ type: 'engie-locator-resize', height: newHeight }, '*');
+                });
+                resizeObserver.observe(wrapper);
+            }
         });
     </script>
 </body>
