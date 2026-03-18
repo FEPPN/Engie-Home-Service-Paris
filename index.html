@@ -1,0 +1,248 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { MapPin, Phone, Clock } from 'lucide-react';
+
+// Données fictives pour les agences Engie Home Services à Paris
+const locations = [
+  {
+    id: 1,
+    name: "Engie Home Services Paris 11",
+    address: "15 Rue Sedaine, 75011 Paris",
+    lat: 48.855010,
+    lng: 2.373400,
+    phone: "01 23 45 67 89",
+    hours: "08:00 - 18:00"
+  },
+  {
+    id: 2,
+    name: "Engie Home Services Paris 15",
+    address: "23 Rue du Commerce, 75015 Paris",
+    lat: 48.847120,
+    lng: 2.296510,
+    phone: "01 23 45 67 90",
+    hours: "08:30 - 17:30"
+  },
+  {
+    id: 3,
+    name: "Engie Home Services Paris 18",
+    address: "89 Rue Ordener, 75018 Paris",
+    lat: 48.892530,
+    lng: 2.344420,
+    phone: "01 23 45 67 91",
+    hours: "09:00 - 18:00"
+  },
+  {
+    id: 4,
+    name: "Engie Home Services Paris 13",
+    address: "100 Avenue d'Ivry, 75013 Paris",
+    lat: 48.825640,
+    lng: 2.365330,
+    phone: "01 23 45 67 92",
+    hours: "08:00 - 17:00"
+  },
+  {
+    id: 5,
+    name: "Engie Home Services Paris 19",
+    address: "45 Avenue de Flandre, 75019 Paris",
+    lat: 48.888350,
+    lng: 2.373540,
+    phone: "01 23 45 67 93",
+    hours: "08:30 - 18:00"
+  }
+];
+
+export default function App() {
+  // On sélectionne la première agence par défaut pour simuler le comportement de la capture
+  const [activeLocationId, setActiveLocationId] = useState(locations[0].id);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = useRef(null);
+  const leafletMapInstance = useRef(null);
+  const markersRef = useRef({});
+
+  // Charger les scripts et styles de Leaflet
+  useEffect(() => {
+    if (document.getElementById('leaflet-css')) {
+      if (window.L) setMapLoaded(true);
+      return;
+    }
+
+    const link = document.createElement('link');
+    link.id = 'leaflet-css';
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+
+    const script = document.createElement('script');
+    script.id = 'leaflet-js';
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.async = true;
+    
+    script.onload = () => {
+      setMapLoaded(true);
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      if (leafletMapInstance.current) {
+        leafletMapInstance.current.remove();
+        leafletMapInstance.current = null;
+      }
+    };
+  }, []);
+
+  // Initialiser la carte Leaflet
+  useEffect(() => {
+    if (mapLoaded && mapRef.current && !leafletMapInstance.current) {
+      const L = window.L;
+      
+      const map = L.map(mapRef.current, {
+        zoomControl: false
+      }).setView([locations[0].lat, locations[0].lng], 13);
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 20
+      }).addTo(map);
+
+      leafletMapInstance.current = map;
+
+      // Création de l'icône bleue (Primary Papernest)
+      const customIcon = L.divIcon({
+        className: 'custom-leaflet-icon',
+        html: `<div style="background-color: #5A52FF; width: 22px; height: 22px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><div style="background-color: white; width: 6px; height: 6px; border-radius: 50%;"></div></div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+        popupAnchor: [0, -11]
+      });
+
+      locations.forEach(loc => {
+        const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
+        
+        marker.bindPopup(`
+          <div style="font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif; color: #1C1917; padding: 2px;">
+            <h3 style="margin: 0 0 4px 0; font-weight: bold; color: #5A52FF; font-size: 15px;">${loc.name}</h3>
+            <p style="margin: 0; font-size: 13px;">${loc.address}</p>
+          </div>
+        `);
+
+        marker.on('click', () => {
+          setActiveLocationId(loc.id);
+          map.setView([loc.lat, loc.lng], 15);
+        });
+
+        markersRef.current[loc.id] = { marker };
+      });
+      
+      // Ouvrir la popup du premier élément par défaut
+      if (markersRef.current[locations[0].id]) {
+        markersRef.current[locations[0].id].marker.openPopup();
+      }
+    }
+  }, [mapLoaded]);
+
+  const handleLocationClick = (loc) => {
+    setActiveLocationId(loc.id);
+    if (leafletMapInstance.current && markersRef.current[loc.id]) {
+      const map = leafletMapInstance.current;
+      const { marker } = markersRef.current[loc.id];
+      
+      map.setView([loc.lat, loc.lng], 15);
+      marker.openPopup();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FAFAF9] p-4 md:p-8 flex flex-col items-center" style={{ fontFamily: "'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .hide-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #E7E5E4;
+          border-radius: 10px;
+        }
+        .leaflet-popup-content-wrapper {
+          border-radius: 8px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .leaflet-container {
+          font-family: inherit;
+        }
+      `}</style>
+
+      {/* Titre centré */}
+      <div className="w-full max-w-6xl mb-6 text-center">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-[#1C1917]">
+          Trouvez votre agence <span className="text-[#5A52FF]">Engie Home Services</span> à Paris
+        </h1>
+      </div>
+
+      {/* Conteneur principal (sans margin superflue, avec fond blanc et bordures de la capture) */}
+      <div className="w-full max-w-6xl bg-white rounded-xl shadow-sm border border-[#E7E5E4] p-4 flex flex-col md:flex-row gap-4 h-[650px]">
+        
+        {/* Colonne de GAUCHE : Liste des adresses */}
+        <div className="w-full md:w-[350px] shrink-0 flex flex-col gap-3 overflow-y-auto pr-2 hide-scrollbar h-full">
+          {locations.map((loc) => {
+            const isActive = activeLocationId === loc.id;
+            
+            return (
+              <div 
+                key={loc.id}
+                onClick={() => handleLocationClick(loc)}
+                className={`
+                  cursor-pointer transition-all duration-200 p-4 rounded-r-lg rounded-l-sm
+                  ${isActive 
+                    ? 'bg-[#F6F5FF] border-l-4 border-[#5A52FF]' 
+                    : 'bg-[#FAFAF9] border-l-4 border-transparent hover:bg-[#F6F5FF] hover:border-[#ACA8FF]'
+                  }
+                `}
+              >
+                <h2 className={`font-bold text-base leading-tight mb-2 ${isActive ? 'text-[#5A52FF]' : 'text-[#1C1917]'}`}>
+                  {loc.name}
+                </h2>
+                
+                <div className="flex items-start gap-2 mt-2 text-[#79716B]">
+                  {/* Utilisation de l'icône de la couleur rouge type Google Maps visible sur la capture (Destructive 500 Papernest) */}
+                  <MapPin className="w-4 h-4 text-[#FF2056] mt-0.5 shrink-0" fill="#FF2056" fillOpacity={0.2} />
+                  <span className="text-sm leading-snug">{loc.address}</span>
+                </div>
+                
+                {/* On n'affiche le téléphone et les horaires que si la carte est active (pour un effet accordéon propre) ou on les laisse, au choix */}
+                {isActive && (
+                  <div className="mt-3 pt-3 border-t border-[#E7E5E4] space-y-2">
+                    <div className="flex items-center gap-2 text-[#79716B]">
+                      <Phone className="w-4 h-4 text-[#79716B] shrink-0" />
+                      <span className="text-sm font-medium">{loc.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[#79716B]">
+                      <Clock className="w-4 h-4 text-[#79716B] shrink-0" />
+                      <span className="text-sm">{loc.hours}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Colonne de DROITE : Carte Leaflet */}
+        <div className="flex-1 h-full min-h-[400px] rounded-lg overflow-hidden border border-[#E7E5E4] relative bg-[#FAFAF9]">
+          {!mapLoaded && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-[#79716B] gap-3 z-10">
+              <div className="w-8 h-8 border-4 border-[#5A52FF] border-t-transparent rounded-full animate-spin"></div>
+              <p>Chargement de la carte...</p>
+            </div>
+          )}
+          <div ref={mapRef} className="absolute inset-0 w-full h-full z-0" />
+        </div>
+        
+      </div>
+    </div>
+  );
+}
