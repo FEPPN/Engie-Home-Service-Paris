@@ -13,6 +13,11 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
+        /* FORCER LA TRANSPARENCE DU FOND */
+        html, body {
+            background-color: transparent !important;
+        }
+
         /* Styles spécifiques pour reproduire le design Papernest */
         body {
             font-family: 'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -56,17 +61,13 @@
         <div class="w-full max-w-6xl bg-white rounded-xl shadow-sm border border-[#E7E5E4] p-3 md:p-4 flex flex-col md:flex-row gap-4">
             
             <!-- Colonne de GAUCHE (ou BAS sur mobile) : Liste des adresses -->
-            <!-- Retrait de "overflow-y-auto" et des hauteurs fixes. La liste prend toute la place nécessaire. -->
             <div id="location-list" class="order-2 md:order-1 w-full md:w-[350px] shrink-0 flex flex-col gap-3">
                 <!-- Le contenu sera injecté ici instantanément -->
             </div>
 
             <!-- Colonne de DROITE (ou HAUT sur mobile) : Carte Leaflet -->
-            <!-- Le conteneur parent s'étire automatiquement sur Desktop ("md:h-auto") -->
             <div style="transform: translateZ(0);" class="order-1 md:order-2 w-full h-[350px] md:h-auto md:flex-1 rounded-lg overflow-hidden border border-[#E7E5E4] relative bg-[#FAFAF9] isolate z-0">
-                <!-- La carte remplit le conteneur parent grâce à absolute inset-0 -->
                 <div id="map" class="absolute inset-0 w-full h-full">
-                    <!-- Spinner de chargement -->
                     <div class="absolute inset-0 flex flex-col items-center justify-center text-[#79716B] gap-3 z-0">
                         <div class="w-8 h-8 border-4 border-[#5A52FF] border-t-transparent rounded-full animate-spin"></div>
                         <p>Chargement de la carte...</p>
@@ -79,7 +80,6 @@
 
     <!-- JavaScript Ultra-léger (Vanilla JS) -->
     <script>
-        // Données des agences
         const locations = [
             { id: 1, name: "Engie Home Services Paris 11", address: "15 Rue Sedaine, 75011 Paris", lat: 48.855010, lng: 2.373400, phone: "01 23 45 67 89", hours: "08:00 - 18:00" },
             { id: 2, name: "Engie Home Services Paris 15", address: "23 Rue du Commerce, 75015 Paris", lat: 48.847120, lng: 2.296510, phone: "01 23 45 67 90", hours: "08:30 - 17:30" },
@@ -88,7 +88,6 @@
             { id: 5, name: "Engie Home Services Paris 19", address: "45 Avenue de Flandre, 75019 Paris", lat: 48.888350, lng: 2.373540, phone: "01 23 45 67 93", hours: "08:30 - 18:00" }
         ];
 
-        // Icônes SVG
         const svgPin = `<svg viewBox="0 0 24 24" fill="#FF2056" fill-opacity="0.2" stroke="#FF2056" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mt-0.5 shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
         const svgPhone = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-[#79716B] shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
         const svgClock = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-[#79716B] shrink-0"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
@@ -144,8 +143,6 @@
                 map.setView([loc.lat, loc.lng], 15); 
                 marker.openPopup(); 
                 
-                // Le scrollIntoView reste très utile sur mobile pour ramener 
-                // l'utilisateur sur la carte s'il a cliqué tout en bas de la liste
                 if (window.innerWidth < 768) {
                     const mapContainer = document.getElementById('map');
                     if (mapContainer) {
@@ -203,11 +200,9 @@
                 if(map) map.invalidateSize();
             });
 
-            // NOUVEAU : Calcul exact de la hauteur et envoi au site parent
             const wrapper = document.getElementById('engie-app-wrapper');
             if (wrapper) {
                 const resizeObserver = new ResizeObserver(() => {
-                    // On ajoute 20px de marge de sécurité pour éviter toute coupure
                     const newHeight = wrapper.offsetHeight + 20;
                     window.parent.postMessage({ type: 'engie-locator-resize', height: newHeight }, '*');
                 });
