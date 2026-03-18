@@ -83,10 +83,7 @@ export default function App() {
     document.head.appendChild(script);
 
     return () => {
-      if (leafletMapInstance.current) {
-        leafletMapInstance.current.remove();
-        leafletMapInstance.current = null;
-      }
+      // On retire le nettoyage de la carte d'ici pour le mettre dans le bon useEffect
     };
   }, []);
 
@@ -141,6 +138,15 @@ export default function App() {
         markersRef.current[locations[0].id].marker.openPopup();
       }
     }
+
+    // CORRECTIF : Nettoyer proprement l'instance de la carte à la destruction du composant
+    // Cela évite l'erreur "Map container is already initialized" très fréquente sur GitHub/React
+    return () => {
+      if (leafletMapInstance.current) {
+        leafletMapInstance.current.remove();
+        leafletMapInstance.current = null;
+      }
+    };
   }, [mapLoaded]);
 
   const handleLocationClick = (loc) => {
