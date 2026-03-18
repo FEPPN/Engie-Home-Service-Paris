@@ -54,16 +54,16 @@
             </h1>
         </div>
 
-        <!-- Conteneur principal -->
-        <div class="w-full max-w-6xl bg-white rounded-xl shadow-sm border border-[#E7E5E4] p-4 flex flex-col md:flex-row gap-4 h-[650px]">
+        <!-- Conteneur principal (Optimisé mobile : flex-col-reverse et hauteurs adaptatives) -->
+        <div class="w-full max-w-6xl bg-white rounded-xl shadow-sm border border-[#E7E5E4] p-4 flex flex-col-reverse md:flex-row gap-4 md:h-[650px]">
             
-            <!-- Colonne de GAUCHE : Liste des adresses générée par JavaScript -->
-            <div id="location-list" class="w-full md:w-[350px] shrink-0 flex flex-col gap-3 overflow-y-auto pr-2 hide-scrollbar h-full">
+            <!-- Colonne de GAUCHE (ou BAS sur mobile) : Liste des adresses -->
+            <div id="location-list" class="w-full md:w-[350px] shrink-0 flex flex-col gap-3 overflow-y-auto pr-2 hide-scrollbar h-[350px] md:h-full">
                 <!-- Le contenu sera injecté ici instantanément -->
             </div>
 
-            <!-- Colonne de DROITE : Carte Leaflet -->
-            <div id="map" class="flex-1 h-full min-h-[400px] rounded-lg overflow-hidden border border-[#E7E5E4] relative bg-[#FAFAF9]">
+            <!-- Colonne de DROITE (ou HAUT sur mobile) : Carte Leaflet -->
+            <div id="map" class="w-full h-[400px] md:h-full md:flex-1 rounded-lg overflow-hidden border border-[#E7E5E4] relative bg-[#FAFAF9] z-0">
                 <!-- Spinner de chargement (écrasé par la carte dès qu'elle est prête) -->
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-[#79716B] gap-3 z-0">
                     <div class="w-8 h-8 border-4 border-[#5A52FF] border-t-transparent rounded-full animate-spin"></div>
@@ -143,6 +143,14 @@
             if (marker && loc) {
                 map.setView([loc.lat, loc.lng], 15); // Zoom sur l'agence
                 marker.openPopup(); // Ouvre la bulle sur la carte
+                
+                // Sur mobile, scroller automatiquement vers la carte pour qu'elle soit bien en vue
+                if (window.innerWidth < 768) {
+                    const mapContainer = document.getElementById('map');
+                    if (mapContainer) {
+                        mapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
             }
             renderList(); // Met à jour le style de la liste (bande bleue)
         }
@@ -169,7 +177,7 @@
             // Créer l'icône bleue style Papernest
             const customIcon = L.divIcon({
                 className: 'custom-leaflet-icon',
-                html: `<div></div>`, // Le style (rond avec point blanc) est défini dans le CSS en haut
+                html: `<div></div>`, // Le style est défini dans le CSS en haut
                 iconSize: [22, 22],
                 iconAnchor: [11, 11],
                 popupAnchor: [0, -11]
@@ -186,9 +194,7 @@
                     </div>
                 `);
 
-                // Lier le clic du marqueur à notre fonction centrale
                 marker.on('click', () => handleLocationClick(loc.id));
-
                 markersRef[loc.id] = marker;
             });
             
@@ -196,6 +202,17 @@
             if (markersRef[locations[0].id]) {
                 markersRef[locations[0].id].openPopup();
             }
+
+            // CORRECTIF LEAFLET : Forcer le recalcul de la taille de la carte après son injection dans le DOM.
+            // Cela résout le bug de la carte qui ne s'affiche qu'à moitié (zones grises) sur mobile.
+            setTimeout(() => {
+                if(map) map.invalidateSize();
+            }, 300);
+
+            // Mettre à jour la taille si l'utilisateur change l'orientation de son téléphone
+            window.addEventListener('resize', () => {
+                if(map) map.invalidateSize();
+            });
         });
     </script>
 </body>
