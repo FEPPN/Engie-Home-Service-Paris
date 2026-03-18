@@ -5,47 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trouver votre agence Engie</title>
     
-    <!-- Tailwind CSS pour le design -->
+    <!-- Tailwind CSS pour le design (chargement rapide) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Leaflet CSS & JS pour la carte -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- React & ReactDOM (depuis un CDN) -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel pour compiler le JSX directement dans le navigateur -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* Styles spécifiques pour reproduire le design Papernest */
+        body {
+            font-family: 'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar { width: 6px; }
+        .hide-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .hide-scrollbar::-webkit-scrollbar-thumb { background-color: #E7E5E4; border-radius: 10px; }
+        
+        /* Ajustements Leaflet */
+        .leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .leaflet-container { font-family: inherit; z-index: 0; }
+        .custom-leaflet-icon div {
+            background-color: #5A52FF; 
+            width: 22px; 
+            height: 22px; 
+            border-radius: 50%; 
+            border: 3px solid white; 
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+        .custom-leaflet-icon div::after {
+            content: '';
+            background-color: white; 
+            width: 6px; 
+            height: 6px; 
+            border-radius: 50%;
+        }
+    </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="bg-[#FAFAF9]">
+    
+    <div class="min-h-screen p-4 md:p-8 flex flex-col items-center">
+        <!-- Titre centré -->
+        <div class="w-full max-w-6xl mb-6 text-center">
+            <h1 class="text-2xl md:text-3xl font-extrabold text-[#1C1917]">
+            Trouvez votre agence <span class="text-[#5A52FF]">Engie Home Services</span> à Paris
+            </h1>
+        </div>
 
-    <script type="text/babel">
-        // Remplacement des imports par les variables React globales
-        const { useState, useEffect, useRef } = React;
+        <!-- Conteneur principal -->
+        <div class="w-full max-w-6xl bg-white rounded-xl shadow-sm border border-[#E7E5E4] p-4 flex flex-col md:flex-row gap-4 h-[650px]">
+            
+            <!-- Colonne de GAUCHE : Liste des adresses générée par JavaScript -->
+            <div id="location-list" class="w-full md:w-[350px] shrink-0 flex flex-col gap-3 overflow-y-auto pr-2 hide-scrollbar h-full">
+                <!-- Le contenu sera injecté ici instantanément -->
+            </div>
 
-        // Icônes personnalisées (remplace lucide-react qui nécessite une installation)
-        const MapPinIcon = ({ className }) => (
-            <svg viewBox="0 0 24 24" fill="#FF2056" fillOpacity="0.2" stroke="#FF2056" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle>
-            </svg>
-        );
+            <!-- Colonne de DROITE : Carte Leaflet -->
+            <div id="map" class="flex-1 h-full min-h-[400px] rounded-lg overflow-hidden border border-[#E7E5E4] relative bg-[#FAFAF9]">
+                <!-- Spinner de chargement (écrasé par la carte dès qu'elle est prête) -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-[#79716B] gap-3 z-0">
+                    <div class="w-8 h-8 border-4 border-[#5A52FF] border-t-transparent rounded-full animate-spin"></div>
+                    <p>Chargement de la carte...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        const PhoneIcon = ({ className }) => (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-            </svg>
-        );
-
-        const ClockIcon = ({ className }) => (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-        );
-
-        // Données fictives
+    <!-- JavaScript Ultra-léger (Vanilla JS) -->
+    <script>
+        // Données des agences
         const locations = [
             { id: 1, name: "Engie Home Services Paris 11", address: "15 Rue Sedaine, 75011 Paris", lat: 48.855010, lng: 2.373400, phone: "01 23 45 67 89", hours: "08:00 - 18:00" },
             { id: 2, name: "Engie Home Services Paris 15", address: "23 Rue du Commerce, 75015 Paris", lat: 48.847120, lng: 2.296510, phone: "01 23 45 67 90", hours: "08:30 - 17:30" },
@@ -54,145 +84,119 @@
             { id: 5, name: "Engie Home Services Paris 19", address: "45 Avenue de Flandre, 75019 Paris", lat: 48.888350, lng: 2.373540, phone: "01 23 45 67 93", hours: "08:30 - 18:00" }
         ];
 
-        function App() {
-            const [activeLocationId, setActiveLocationId] = useState(locations[0].id);
-            const mapRef = useRef(null);
-            const leafletMapInstance = useRef(null);
-            const markersRef = useRef({});
+        // Icônes SVG
+        const svgPin = `<svg viewBox="0 0 24 24" fill="#FF2056" fill-opacity="0.2" stroke="#FF2056" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mt-0.5 shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+        const svgPhone = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-[#79716B] shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
+        const svgClock = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-[#79716B] shrink-0"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
 
-            useEffect(() => {
-                if (!mapRef.current || leafletMapInstance.current || !window.L) return;
+        let activeLocationId = locations[0].id;
+        const markersRef = {};
+        let map;
 
-                const L = window.L;
-                const map = L.map(mapRef.current, { zoomControl: false }).setView([locations[0].lat, locations[0].lng], 13);
+        // Fonction pour générer la liste à gauche
+        function renderList() {
+            const listContainer = document.getElementById('location-list');
+            listContainer.innerHTML = ''; // On vide
 
-                L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                    subdomains: 'abcd',
-                    maxZoom: 20
-                }).addTo(map);
-
-                leafletMapInstance.current = map;
-
-                const customIcon = L.divIcon({
-                    className: 'custom-leaflet-icon',
-                    html: `<div style="background-color: #5A52FF; width: 22px; height: 22px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><div style="background-color: white; width: 6px; height: 6px; border-radius: 50%;"></div></div>`,
-                    iconSize: [22, 22],
-                    iconAnchor: [11, 11],
-                    popupAnchor: [0, -11]
-                });
-
-                locations.forEach(loc => {
-                    const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
-                    
-                    marker.bindPopup(`
-                        <div style="font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif; color: #1C1917; padding: 2px;">
-                        <h3 style="margin: 0 0 4px 0; font-weight: bold; color: #5A52FF; font-size: 15px;">${loc.name}</h3>
-                        <p style="margin: 0; font-size: 13px;">${loc.address}</p>
-                        </div>
-                    `);
-
-                    marker.on('click', () => {
-                        setActiveLocationId(loc.id);
-                        map.setView([loc.lat, loc.lng], 15);
-                    });
-
-                    markersRef.current[loc.id] = { marker };
-                });
+            locations.forEach(loc => {
+                const isActive = activeLocationId === loc.id;
                 
-                if (markersRef.current[locations[0].id]) {
-                    markersRef.current[locations[0].id].marker.openPopup();
+                // Création de l'élément carte
+                const item = document.createElement('div');
+                item.className = `cursor-pointer transition-all duration-200 p-4 rounded-r-lg rounded-l-sm ${isActive ? 'bg-[#F6F5FF] border-l-4 border-[#5A52FF]' : 'bg-[#FAFAF9] border-l-4 border-transparent hover:bg-[#F6F5FF] hover:border-[#ACA8FF]'}`;
+                item.onclick = () => handleLocationClick(loc.id);
+
+                let htmlContent = `
+                    <h2 class="font-bold text-base leading-tight mb-2 ${isActive ? 'text-[#5A52FF]' : 'text-[#1C1917]'}">${loc.name}</h2>
+                    <div class="flex items-start gap-2 mt-2 text-[#79716B]">
+                        ${svgPin}
+                        <span class="text-sm leading-snug">${loc.address}</span>
+                    </div>
+                `;
+
+                // On ajoute les horaires et le tel seulement si l'élément est actif
+                if (isActive) {
+                    htmlContent += `
+                    <div class="mt-3 pt-3 border-t border-[#E7E5E4] space-y-2">
+                        <div class="flex items-center gap-2 text-[#79716B]">
+                            ${svgPhone}
+                            <span class="text-sm font-medium">${loc.phone}</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-[#79716B]">
+                            ${svgClock}
+                            <span class="text-sm">${loc.hours}</span>
+                        </div>
+                    </div>`;
                 }
 
-                return () => {
-                    if (leafletMapInstance.current) {
-                        leafletMapInstance.current.remove();
-                        leafletMapInstance.current = null;
-                    }
-                };
-            }, []);
-
-            const handleLocationClick = (loc) => {
-                setActiveLocationId(loc.id);
-                if (leafletMapInstance.current && markersRef.current[loc.id]) {
-                    const map = leafletMapInstance.current;
-                    const { marker } = markersRef.current[loc.id];
-                    
-                    map.setView([loc.lat, loc.lng], 15);
-                    marker.openPopup();
-                }
-            };
-
-            return (
-                <div className="min-h-screen bg-[#FAFAF9] p-4 md:p-8 flex flex-col items-center" style={{ fontFamily: "'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
-                    <style>{`
-                        .hide-scrollbar::-webkit-scrollbar { width: 6px; }
-                        .hide-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                        .hide-scrollbar::-webkit-scrollbar-thumb { background-color: #E7E5E4; border-radius: 10px; }
-                        .leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-                        .leaflet-container { font-family: inherit; z-index: 0; }
-                    `}</style>
-
-                    <div className="w-full max-w-6xl mb-6 text-center">
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-[#1C1917]">
-                        Trouvez votre agence <span className="text-[#5A52FF]">Engie Home Services</span> à Paris
-                        </h1>
-                    </div>
-
-                    <div className="w-full max-w-6xl bg-white rounded-xl shadow-sm border border-[#E7E5E4] p-4 flex flex-col md:flex-row gap-4 h-[650px]">
-                        
-                        <div className="w-full md:w-[350px] shrink-0 flex flex-col gap-3 overflow-y-auto pr-2 hide-scrollbar h-full">
-                        {locations.map((loc) => {
-                            const isActive = activeLocationId === loc.id;
-                            
-                            return (
-                            <div 
-                                key={loc.id}
-                                onClick={() => handleLocationClick(loc)}
-                                className={`
-                                cursor-pointer transition-all duration-200 p-4 rounded-r-lg rounded-l-sm
-                                ${isActive ? 'bg-[#F6F5FF] border-l-4 border-[#5A52FF]' : 'bg-[#FAFAF9] border-l-4 border-transparent hover:bg-[#F6F5FF] hover:border-[#ACA8FF]'}
-                                `}
-                            >
-                                <h2 className={`font-bold text-base leading-tight mb-2 ${isActive ? 'text-[#5A52FF]' : 'text-[#1C1917]'}`}>
-                                {loc.name}
-                                </h2>
-                                
-                                <div className="flex items-start gap-2 mt-2 text-[#79716B]">
-                                    <MapPinIcon className="w-4 h-4 mt-0.5 shrink-0" />
-                                    <span className="text-sm leading-snug">{loc.address}</span>
-                                </div>
-                                
-                                {isActive && (
-                                <div className="mt-3 pt-3 border-t border-[#E7E5E4] space-y-2">
-                                    <div className="flex items-center gap-2 text-[#79716B]">
-                                        <PhoneIcon className="w-4 h-4 text-[#79716B] shrink-0" />
-                                        <span className="text-sm font-medium">{loc.phone}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-[#79716B]">
-                                        <ClockIcon className="w-4 h-4 text-[#79716B] shrink-0" />
-                                        <span className="text-sm">{loc.hours}</span>
-                                    </div>
-                                </div>
-                                )}
-                            </div>
-                            );
-                        })}
-                        </div>
-
-                        <div className="flex-1 h-full min-h-[400px] rounded-lg overflow-hidden border border-[#E7E5E4] relative bg-[#FAFAF9]">
-                            <div ref={mapRef} className="absolute inset-0 w-full h-full" />
-                        </div>
-                    </div>
-                </div>
-            );
+                item.innerHTML = htmlContent;
+                listContainer.appendChild(item);
+            });
         }
 
-        // Démarrage de l'application
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // Action quand on clique sur une carte de la liste ou un marqueur
+        function handleLocationClick(id) {
+            activeLocationId = id;
+            const loc = locations.find(l => l.id === id);
+            const marker = markersRef[id];
+            
+            if (marker && loc) {
+                map.setView([loc.lat, loc.lng], 15); // Zoom sur l'agence
+                marker.openPopup(); // Ouvre la bulle sur la carte
+            }
+            renderList(); // Met à jour le style de la liste (bande bleue)
+        }
+
+        // Initialisation de la carte au chargement de la page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Afficher la liste de départ
+            renderList();
+
+            // Vider le conteneur de carte (pour retirer le spinner de chargement)
+            document.getElementById('map').innerHTML = '';
+
+            // Initialiser Leaflet
+            map = L.map('map', { zoomControl: false }).setView([locations[0].lat, locations[0].lng], 13);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            // Charger les tuiles cartographiques (style clair)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+
+            // Créer l'icône bleue style Papernest
+            const customIcon = L.divIcon({
+                className: 'custom-leaflet-icon',
+                html: `<div></div>`, // Le style (rond avec point blanc) est défini dans le CSS en haut
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            });
+
+            // Placer tous les marqueurs
+            locations.forEach(loc => {
+                const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
+                
+                marker.bindPopup(`
+                    <div style="font-family: 'Avenir', -apple-system, sans-serif; color: #1C1917; padding: 2px;">
+                    <h3 style="margin: 0 0 4px 0; font-weight: bold; color: #5A52FF; font-size: 15px;">${loc.name}</h3>
+                    <p style="margin: 0; font-size: 13px;">${loc.address}</p>
+                    </div>
+                `);
+
+                // Lier le clic du marqueur à notre fonction centrale
+                marker.on('click', () => handleLocationClick(loc.id));
+
+                markersRef[loc.id] = marker;
+            });
+            
+            // Ouvrir la première agence par défaut
+            if (markersRef[locations[0].id]) {
+                markersRef[locations[0].id].openPopup();
+            }
+        });
     </script>
 </body>
 </html>
